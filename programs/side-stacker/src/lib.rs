@@ -11,11 +11,24 @@ pub mod side_stacker {
         game.board = vec![Play::Empty; 49];
         game.name = name;
         game.players = players;
-        
+
+        Ok(())
+    }
+
+    pub fn play_game(ctx: Context<Playing>, play: u8) -> Result<()> {
+        let game = &mut ctx.accounts.game;
+        let player = &mut ctx.accounts.payer;
+        let turn = (game.turn % 2) as usize;
+        if player.key() == game.players[turn] {
+            let mut board = (*game.board).to_vec();
+            let cell_value = if turn == 0 { Play::O } else { Play::X };
+            board[play as usize] = cell_value;
+            game.board = board;
+        }
+
         Ok(())
     }
 }
-
 
 #[derive(Accounts)]
 #[instruction(name: String)]
@@ -34,6 +47,16 @@ pub struct CreateGame<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct Playing<'info> {
+    #[account(mut)]
+    pub game: Account<'info, Game>,
+    /// CHECK:
+    #[account(mut)]
+    pub payer: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 pub struct Game {
     pub name: String,
@@ -45,5 +68,5 @@ pub struct Game {
 pub enum Play {
     Empty,
     X,
-    O
+    O,
 }
