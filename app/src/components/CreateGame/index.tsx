@@ -44,9 +44,9 @@ export const CreateGame: FC = ({}) => {
       <nav className="flex justify-between items-center px-16 py-4 bg-black">
         <WalletMultiButton />
       </nav>
-      <div className="flex">
+      <div>
         {!wallet ? (
-          <p> no wallet </p>
+          <h1 className="text-white">Connect your wallet!</h1>
         ) : (
           <>
             <input
