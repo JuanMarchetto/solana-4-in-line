@@ -7,7 +7,7 @@ const Home: NextPage = (props) => {
     <>
       <Head>
         <title>Solana Side Stacker Game!</title>
-        <meta name="description" content="Solana Side Stscker Game!" />
+        <meta name="description" content="Solana Side Stacker Game!" />
       </Head>
       <CreateGame />
     </>

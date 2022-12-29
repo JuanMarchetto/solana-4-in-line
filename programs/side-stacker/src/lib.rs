@@ -18,6 +18,7 @@ pub mod side_stacker {
     pub fn play_game(ctx: Context<Playing>, play: u8) -> Result<()> {
         let game = &mut ctx.accounts.game;
         let player = &mut ctx.accounts.payer;
+        msg!("{} {}",player.key(), play);
         let turn = (game.turn % 2) as usize;
         if player.key() == game.players[turn] {
             let mut board = (*game.board).to_vec();
