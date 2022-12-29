@@ -25,6 +25,7 @@ pub mod side_stacker {
             let cell_value = if turn == 0 { Play::O } else { Play::X };
             board[play as usize] = cell_value;
             game.board = board;
+            game.turn = game.turn.checked_add(1).unwrap()
         }
 
         Ok(())
