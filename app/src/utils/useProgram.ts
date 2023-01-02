@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 
-import idl from "../../../target/idl/side_stacker.json"
+import idl from "./side_stacker.json"
 
 
 const SIDE_STACKER_PROGRAM = idl.metadata.address;
