@@ -17,3 +17,4 @@ default = []
 
 [dependencies]
 anchor-lang = "0.25.0"
+itertools = "0.10.5"

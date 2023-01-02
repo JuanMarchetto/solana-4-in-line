@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use itertools::Itertools;
 
 declare_id!("EqZTXLmsXwz4gAqBQJG2q1fXigJxVUWt2vSGH1dSRF81");
 
@@ -11,12 +12,15 @@ pub mod side_stacker {
         game.board = vec![Play::Empty; 49];
         game.name = name;
         game.players = players;
-
+        game.ended = false;
         Ok(())
     }
 
     pub fn play_game(ctx: Context<Playing>, play: u8) -> Result<()> {
         let game = &mut ctx.accounts.game;
+        if game.ended {
+            return Err(error!(ErrorCode::FinishedGame));
+        }
         let player = &mut ctx.accounts.payer;
         let turn = (game.turn % 2) as usize;
         if player.key() != game.players[turn] {
@@ -31,13 +35,41 @@ pub mod side_stacker {
         if !is_valid_cell {
             return Err(error!(ErrorCode::InvalidCell));
         }
-
         let mut board = (*game.board).to_vec();
         let cell_value = if turn == 0 { Play::O } else { Play::X };
         board[play as usize] = cell_value;
         game.board = board;
-        game.turn = game.turn.checked_add(1).unwrap();
-
+        let cells_of_player =
+            game.board
+                .iter()
+                .enumerate()
+                .fold([].to_vec(), |mut acc, (index, cell)| {
+                    if *cell == game.board[play as usize] {
+                        acc.push(index)
+                    }
+                    acc
+                });
+        let posible_lines: Vec<Vec<usize>> = cells_of_player.into_iter().combinations(4).collect();
+        let player_win = posible_lines.iter().any(|line| {
+            (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
+                || (((line[0] / 7 == (line[1] / 7) - 1)
+                    && (line[1] / 7 == (line[2] / 7) - 1)
+                    && (line[2] / 7 == (line[3] / 7) - 1))
+                    && (((line[0] % 7 == line[1] % 7)
+                        && (line[1] % 7 == line[2] % 7)
+                        && (line[2] % 7 == line[3] % 7))
+                        || ((line[0] % 7 == (line[1] % 7) - 1)
+                            && (line[1] % 7 == (line[2] % 7) - 1)
+                            && (line[2] % 7 == (line[3] % 7) - 1))
+                        || ((line[0] % 7 == (line[1] % 7) + 1)
+                            && (line[1] % 7 == (line[2] % 7) + 1)
+                            && (line[2] % 7 == (line[3] % 7) + 1))))
+        });
+        if player_win {
+            game.ended = true;
+        } else {
+            game.turn = game.turn.checked_add(1).unwrap();
+        }
         Ok(())
     }
 }
@@ -75,7 +107,9 @@ pub struct Game {
     pub board: Vec<Play>,
     pub players: Vec<Pubkey>,
     pub turn: u8,
+    pub ended: bool,
 }
+
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub enum Play {
     Empty,
@@ -89,4 +123,6 @@ pub enum ErrorCode {
     IncorrectUser,
     #[msg("You can't use this cell now")]
     InvalidCell,
+    #[msg("You can't play, this game status is ended")]
+    FinishedGame,
 }
