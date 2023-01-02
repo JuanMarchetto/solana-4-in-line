@@ -8,14 +8,17 @@ import { useConnection } from "@solana/wallet-adapter-react";
 
 import { useProgram } from "../../utils/useProgram";
 
-const endpoint = "http://localhost:8899";
-const connection = new anchor.web3.Connection(endpoint);
+const connection = new web3.Connection(
+  ["devnet", "mainnet", "testnet"].includes(process.env.NEXT_PUBLIC_NETWORK)
+    ? web3.clusterApiUrl(process.env.NEXT_PUBLIC_NETWORK as web3.Cluster)
+    : process.env.NEXT_PUBLIC_NETWORK ?? web3.clusterApiUrl("devnet")
+);
 
 export const CreateGame: FC = ({}) => {
   const wallet = useAnchorWallet();
   const { program } = useProgram({ connection, wallet });
   const [player2, setPlayer2] = useState("");
-  const [name, setName] = useState("")
+  const [name, setName] = useState("");
   const handleClick = () => {
     if (program) {
       (async () => {

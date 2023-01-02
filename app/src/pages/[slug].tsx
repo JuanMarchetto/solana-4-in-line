@@ -3,13 +3,15 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import * as web3 from "@solana/web3.js";
-import * as anchor from "@project-serum/anchor";
 import { Board } from "../components/Board";
 import { useProgram } from "../utils/useProgram";
 import { useRouter } from "next/router";
 
-const endpoint = "http://localhost:8899";
-const connection = new anchor.web3.Connection(endpoint);
+const connection = new web3.Connection(
+  ["devnet", "mainnet", "testnet"].includes(process.env.NEXT_PUBLIC_NETWORK)
+    ? web3.clusterApiUrl(process.env.NEXT_PUBLIC_NETWORK as web3.Cluster)
+    : process.env.NEXT_PUBLIC_NETWORK ?? web3.clusterApiUrl("devnet")
+);
 
 const CreateGame: FC = ({}) => {
   const router = useRouter();
@@ -46,7 +48,12 @@ const CreateGame: FC = ({}) => {
         {!wallet ? (
           <h1 className="text-white">Connect your wallet!</h1>
         ) : (
-          <Board board={gameAccount?.board} program={program} gamePublicKey={gamePublicKey} payer={wallet.publicKey}/>
+          <Board
+            board={gameAccount?.board}
+            program={program}
+            gamePublicKey={gamePublicKey}
+            payer={wallet.publicKey}
+          />
         )}
       </div>
     </>
