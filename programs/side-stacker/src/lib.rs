@@ -18,15 +18,25 @@ pub mod side_stacker {
     pub fn play_game(ctx: Context<Playing>, play: u8) -> Result<()> {
         let game = &mut ctx.accounts.game;
         let player = &mut ctx.accounts.payer;
-        msg!("{} {}",player.key(), play);
         let turn = (game.turn % 2) as usize;
-        if player.key() == game.players[turn] {
-            let mut board = (*game.board).to_vec();
-            let cell_value = if turn == 0 { Play::O } else { Play::X };
-            board[play as usize] = cell_value;
-            game.board = board;
-            game.turn = game.turn.checked_add(1).unwrap()
+        if player.key() != game.players[turn] {
+            return Err(error!(ErrorCode::IncorrectUser));
         }
+        let is_valid_cell = game.board[play as usize] == Play::Empty
+            && (play % 7 == 0
+                || play % 7 == 6
+                || (play > 0 && game.board[play as usize - 1] != Play::Empty
+                    || (play as usize) < game.board.len() - 1
+                        && game.board[play as usize + 1] != Play::Empty));
+        if !is_valid_cell {
+            return Err(error!(ErrorCode::InvalidCell));
+        }
+
+        let mut board = (*game.board).to_vec();
+        let cell_value = if turn == 0 { Play::O } else { Play::X };
+        board[play as usize] = cell_value;
+        game.board = board;
+        game.turn = game.turn.checked_add(1).unwrap();
 
         Ok(())
     }
@@ -66,9 +76,17 @@ pub struct Game {
     pub players: Vec<Pubkey>,
     pub turn: u8,
 }
-#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
+#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub enum Play {
     Empty,
     X,
     O,
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Isn't your turn to play")]
+    IncorrectUser,
+    #[msg("You can't use this cell now")]
+    InvalidCell,
 }
