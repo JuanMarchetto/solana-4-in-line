@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("EqZTXLmsXwz4gAqBQJG2q1fXigJxVUWt2vSGH1dSRF81");
+declare_id!("FP5Z91hucXhZV4vueLTLW9esymzuWzz8oS7EmEKVMjDr");
 
 #[program]
 pub mod side_stacker {
