@@ -53,7 +53,7 @@ const CreateGame: FC = ({}) => {
             program={program}
             gamePublicKey={gamePublicKey}
             payer={wallet.publicKey}
-            playable={gameAccount.status== "PLAYING"}
+            playable={gameAccount?.status== "PLAYING"}
           />
           {gameAccount && gameAccount.status != "PLAYING" && (
             <div className="p-5 font-extrabold text-3xl text-center text-white bg-purple-900">
