@@ -43,17 +43,24 @@ const CreateGame: FC = ({}) => {
       <nav className="flex justify-between items-center px-16 py-4 bg-black">
         <WalletMultiButton />
       </nav>
-      {slug}
       <div>
         {!wallet ? (
           <h1 className="text-white">Connect your wallet!</h1>
         ) : (
+          <>
           <Board
             board={gameAccount?.board}
             program={program}
             gamePublicKey={gamePublicKey}
             payer={wallet.publicKey}
+            playable={gameAccount.status== "PLAYING"}
           />
+          {gameAccount && gameAccount.status != "PLAYING" && (
+            <div className="p-5 font-extrabold text-3xl text-center text-white bg-purple-900">
+              {gameAccount.status}
+            </div>
+          )}
+          </>
         )}
       </div>
     </>

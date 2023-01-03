@@ -104,8 +104,8 @@
             "type": "u8"
           },
           {
-            "name": "ended",
-            "type": "bool"
+            "name": "status",
+            "type": "string"
           }
         ]
       }
@@ -130,6 +130,61 @@
       }
     }
   ],
+  "events": [
+    {
+      "name": "GameCreated",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "GameUpdated",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "board",
+          "type": {
+            "vec": {
+              "defined": "Play"
+            }
+          },
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "GameEnded",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "board",
+          "type": {
+            "vec": {
+              "defined": "Play"
+            }
+          },
+          "index": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "index": false
+        }
+      ]
+    }
+  ],
   "errors": [
     {
       "code": 6000,
@@ -148,6 +203,6 @@
     }
   ],
   "metadata": {
-    "address": "FP5Z91hucXhZV4vueLTLW9esymzuWzz8oS7EmEKVMjDr"
+    "address": "9MCk9QD5naTbJySroC8WQUQK9WG1xunUS6PzgNt6we6b"
   }
 }
