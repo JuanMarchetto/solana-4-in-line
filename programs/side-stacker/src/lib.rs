@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("FP5Z91hucXhZV4vueLTLW9esymzuWzz8oS7EmEKVMjDr");
+declare_id!("9MCk9QD5naTbJySroC8WQUQK9WG1xunUS6PzgNt6we6b");
 
 #[program]
 pub mod side_stacker {
@@ -10,15 +10,16 @@ pub mod side_stacker {
     pub fn create_game(ctx: Context<CreateGame>, name: String, players: Vec<Pubkey>) -> Result<()> {
         let game = &mut ctx.accounts.game;
         game.board = vec![Play::Empty; 49];
-        game.name = name;
+        game.name = (*name).to_string();
         game.players = players;
-        game.ended = false;
+        game.status = "PLAYING".to_string();
+        emit!(GameCreated {name,});
         Ok(())
     }
 
     pub fn play_game(ctx: Context<Playing>, play: u8) -> Result<()> {
         let game = &mut ctx.accounts.game;
-        if game.ended {
+        if game.status!= "PLAYING" {
             return Err(error!(ErrorCode::FinishedGame));
         }
         let player = &mut ctx.accounts.payer;
@@ -35,10 +36,11 @@ pub mod side_stacker {
         if !is_valid_cell {
             return Err(error!(ErrorCode::InvalidCell));
         }
+        let name = (*game.name).to_string();
         let mut board = (*game.board).to_vec();
         let cell_value = if turn == 0 { Play::O } else { Play::X };
         board[play as usize] = cell_value;
-        game.board = board;
+        game.board = (*board).to_vec();
         let cells_of_player =
             game.board
                 .iter()
@@ -66,9 +68,17 @@ pub mod side_stacker {
                             && (line[2] % 7 == (line[3] % 7) + 1))))
         });
         if player_win {
-            game.ended = true;
+            let status = format!("{:#?} Wins!, {:#?} Loss!", game.players[turn], game.players[turn.checked_add(1).unwrap()]);
+            game.status = (*status).to_string();
+            emit!(GameEnded {name, board, status});
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
+            if game.turn == 49 {
+                game.status = "TIE".to_string();
+                emit!(GameEnded {name, board, status: "TIE".to_string()});
+            }else{
+                emit!(GameUpdated {name, board});
+            }
         }
         Ok(())
     }
@@ -107,7 +117,7 @@ pub struct Game {
     pub board: Vec<Play>,
     pub players: Vec<Pubkey>,
     pub turn: u8,
-    pub ended: bool,
+    pub status: String,
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
@@ -125,4 +135,22 @@ pub enum ErrorCode {
     InvalidCell,
     #[msg("You can't play, this game status is ended")]
     FinishedGame,
+}
+
+#[event]
+pub struct GameCreated {
+    name: String,
+}
+
+#[event]
+pub struct GameUpdated {
+    name: String,
+    board: Vec<Play>,
+}
+
+#[event]
+pub struct GameEnded {
+    name: String,
+    board: Vec<Play>,
+    status: String
 }
