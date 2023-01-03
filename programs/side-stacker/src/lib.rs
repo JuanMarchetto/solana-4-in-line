@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("9MCk9QD5naTbJySroC8WQUQK9WG1xunUS6PzgNt6we6b");
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod side_stacker {
@@ -13,13 +13,13 @@ pub mod side_stacker {
         game.name = (*name).to_string();
         game.players = players;
         game.status = "PLAYING".to_string();
-        emit!(GameCreated {name,});
+        emit!(GameCreated { name });
         Ok(())
     }
 
     pub fn play_game(ctx: Context<Playing>, play: u8) -> Result<()> {
         let game = &mut ctx.accounts.game;
-        if game.status!= "PLAYING" {
+        if game.status != "PLAYING" {
             return Err(error!(ErrorCode::FinishedGame));
         }
         let player = &mut ctx.accounts.payer;
@@ -41,43 +41,30 @@ pub mod side_stacker {
         let cell_value = if turn == 0 { Play::O } else { Play::X };
         board[play as usize] = cell_value;
         game.board = (*board).to_vec();
-        let cells_of_player =
-            game.board
-                .iter()
-                .enumerate()
-                .fold([].to_vec(), |mut acc, (index, cell)| {
-                    if *cell == game.board[play as usize] {
-                        acc.push(index)
-                    }
-                    acc
-                });
-        let posible_lines: Vec<Vec<usize>> = cells_of_player.into_iter().combinations(4).collect();
-        let player_win = posible_lines.iter().any(|line| {
-            (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
-                || (((line[0] / 7 == (line[1] / 7) - 1)
-                    && (line[1] / 7 == (line[2] / 7) - 1)
-                    && (line[2] / 7 == (line[3] / 7) - 1))
-                    && (((line[0] % 7 == line[1] % 7)
-                        && (line[1] % 7 == line[2] % 7)
-                        && (line[2] % 7 == line[3] % 7))
-                        || ((line[0] % 7 == (line[1] % 7) - 1)
-                            && (line[1] % 7 == (line[2] % 7) - 1)
-                            && (line[2] % 7 == (line[3] % 7) - 1))
-                        || ((line[0] % 7 == (line[1] % 7) + 1)
-                            && (line[1] % 7 == (line[2] % 7) + 1)
-                            && (line[2] % 7 == (line[3] % 7) + 1))))
-        });
-        if player_win {
-            let status = format!("{:#?} Wins!, {:#?} Loss!", game.players[turn], game.players[turn.checked_add(1).unwrap()]);
+
+        if player_win((*board).to_vec(), play as usize) {
+            let status = format!(
+                "{:#?} Wins!, {:#?} Loss!",
+                game.players[turn],
+                game.players[turn.checked_add(1).unwrap()]
+            );
             game.status = (*status).to_string();
-            emit!(GameEnded {name, board, status});
+            emit!(GameEnded {
+                name,
+                board,
+                status
+            });
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
             if game.turn == 49 {
                 game.status = "TIE".to_string();
-                emit!(GameEnded {name, board, status: "TIE".to_string()});
-            }else{
-                emit!(GameUpdated {name, board});
+                emit!(GameEnded {
+                    name,
+                    board,
+                    status: "TIE".to_string()
+                });
+            } else {
+                emit!(GameUpdated { name, board });
             }
         }
         Ok(())
@@ -152,5 +139,33 @@ pub struct GameUpdated {
 pub struct GameEnded {
     name: String,
     board: Vec<Play>,
-    status: String
+    status: String,
+}
+
+fn player_win(board: Vec<Play>, play: usize) -> bool {
+    let cells_of_player = board
+        .iter()
+        .enumerate()
+        .fold([].to_vec(), |mut acc, (index, cell)| {
+            if *cell == board[play] {
+                acc.push(index)
+            }
+            acc
+        });
+    let posible_lines: Vec<Vec<usize>> = cells_of_player.into_iter().combinations(4).collect();
+    posible_lines.iter().any(|line| {
+        (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
+            || (((line[0] / 7 == (line[1] / 7) - 1)
+                && (line[1] / 7 == (line[2] / 7) - 1)
+                && (line[2] / 7 == (line[3] / 7) - 1))
+                && (((line[0] % 7 == line[1] % 7)
+                    && (line[1] % 7 == line[2] % 7)
+                    && (line[2] % 7 == line[3] % 7))
+                    || ((line[0] % 7 == (line[1] % 7) - 1)
+                        && (line[1] % 7 == (line[2] % 7) - 1)
+                        && (line[2] % 7 == (line[3] % 7) - 1))
+                    || ((line[0] % 7 == (line[1] % 7) + 1)
+                        && (line[1] % 7 == (line[2] % 7) + 1)
+                        && (line[2] % 7 == (line[3] % 7) + 1))))
+    })
 }

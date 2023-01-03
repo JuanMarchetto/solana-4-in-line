@@ -2,15 +2,15 @@
 seeds = true
 skip-lint = false
 [programs.localnet]
-side_stacker = "EqZTXLmsXwz4gAqBQJG2q1fXigJxVUWt2vSGH1dSRF81"
+side_stacker = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 [programs.devnet]
-side_stacker = "FP5Z91hucXhZV4vueLTLW9esymzuWzz8oS7EmEKVMjDr"
+side_stacker = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "/Users/juan/.config/solana/id.json"
 
 [scripts]
