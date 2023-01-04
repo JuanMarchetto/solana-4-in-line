@@ -39,7 +39,7 @@ const CreateGame: FC = ({}) => {
     const listener = program.addEventListener(
       "GameUpdated",
       async (event, _slot, _sig) => {
-        setGameAccount(event)
+        setGameAccount(event);
       }
     );
 
@@ -47,24 +47,33 @@ const CreateGame: FC = ({}) => {
       program.removeEventListener(listener);
     };
   }, [program]);
-  
+
   return (
     <div>
       {!wallet ? (
         <h1 className="text-white">Connect your wallet!</h1>
       ) : (
         <>
-          <Board
-            board={gameAccount?.board}
-            program={program}
-            gamePublicKey={gamePublicKey}
-            payer={wallet.publicKey}
-            playable={gameAccount?.status == "PLAYING"}
-          />
-          {gameAccount && gameAccount.status != "PLAYING" && (
-            <div className="p-5 m-5 font-extrabold text-3xl text-center text-white bg-purple-900">
-              {gameAccount.status}
-            </div>
+          {!!gameAccount ? (
+            <>
+              <Board
+                board={gameAccount?.board}
+                program={program}
+                gamePublicKey={gamePublicKey}
+                payer={wallet.publicKey}
+                playable={gameAccount?.status == "PLAYING"}
+              />
+              {gameAccount.status != "PLAYING" && (
+                <div className="p-5 m-5 font-extrabold text-3xl text-center text-white bg-purple-900">
+                  {gameAccount.status}
+                </div>
+              )}
+            </>
+          ) : (
+            <h1 className="text-white">
+              Looks like your game don't exists or the blockchain is still
+              replicating the tx, please try refreshing the page
+            </h1>
           )}
         </>
       )}

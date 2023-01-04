@@ -2,13 +2,13 @@ import { FC, useEffect, useState } from "react";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import * as web3 from "@solana/web3.js";
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useProgram } from "../../utils/useProgram";
 
 export const CreateGame: FC = ({}) => {
   const wallet = useAnchorWallet();
-  const router = useRouter()
+  const router = useRouter();
   const { connection } = useConnection();
   const { program } = useProgram({ connection, wallet });
   const [player2, setPlayer2] = useState("");
@@ -36,14 +36,17 @@ export const CreateGame: FC = ({}) => {
 
   useEffect(() => {
     if (!program) return;
-      const listener = program.addEventListener('GameCreated', async (event, _slot, _sig) => {
-      router.push(`/${name}`)
-    })
+    const listener = program.addEventListener(
+      "GameCreated",
+      async (event, _slot, _sig) => {
+        router.push(`/${name}`);
+      }
+    );
 
     return () => {
       program.removeEventListener(listener);
-    }
-  }, [program])
+    };
+  }, [program]);
 
   return (
     <div className="flex flex-col p-5">
@@ -65,7 +68,7 @@ export const CreateGame: FC = ({}) => {
           />
           <button
             type="button"
-            onClick={player2 ? handleClick : undefined}
+            onClick={player2 && handleClick}
             className="bg-purple-700 text-white font-extrabold p-2 px-4 rounded-lg"
           >
             Create Game!
