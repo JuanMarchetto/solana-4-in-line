@@ -14,6 +14,7 @@ const CreateGame: FC = ({}) => {
   const { program } = useProgram({ connection, wallet });
   const [gamePublicKey, setGamePublicKey] = useState<PublicKey>();
   const [gameAccount, setGameAccount] = useState<any>();
+
   useEffect(() => {
     if (program) {
       const [pda] = web3.PublicKey.findProgramAddressSync(
@@ -23,6 +24,7 @@ const CreateGame: FC = ({}) => {
       setGamePublicKey(pda);
     }
   }, [wallet]);
+
   useEffect(() => {
     if (gamePublicKey) {
       (async () => {
@@ -31,28 +33,42 @@ const CreateGame: FC = ({}) => {
       })();
     }
   }, [gamePublicKey]);
-  useEffect(() => console.log(gameAccount), [gameAccount]);
+
+  useEffect(() => {
+    if (!program) return;
+    const listener = program.addEventListener(
+      "GameUpdated",
+      async (event, _slot, _sig) => {
+        setGameAccount(event)
+      }
+    );
+
+    return () => {
+      program.removeEventListener(listener);
+    };
+  }, [program]);
+  
   return (
-      <div>
-        {!wallet ? (
-          <h1 className="text-white">Connect your wallet!</h1>
-        ) : (
-          <>
+    <div>
+      {!wallet ? (
+        <h1 className="text-white">Connect your wallet!</h1>
+      ) : (
+        <>
           <Board
             board={gameAccount?.board}
             program={program}
             gamePublicKey={gamePublicKey}
             payer={wallet.publicKey}
-            playable={gameAccount?.status== "PLAYING"}
+            playable={gameAccount?.status == "PLAYING"}
           />
           {gameAccount && gameAccount.status != "PLAYING" && (
             <div className="p-5 m-5 font-extrabold text-3xl text-center text-white bg-purple-900">
               {gameAccount.status}
             </div>
           )}
-          </>
-        )}
-      </div>
+        </>
+      )}
+    </div>
   );
 };
 
