@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("CJMbPKQ12eGY4TYQLGnojtVjbA95EYVZKTv4NaAUmTUN");
 
 #[program]
 pub mod side_stacker {
@@ -49,7 +49,7 @@ pub mod side_stacker {
                 game.players[turn.checked_add(1).unwrap()]
             );
             game.status = (*status).to_string();
-            emit!(GameEnded {
+            emit!(GameUpdated {
                 name,
                 board,
                 status
@@ -58,13 +58,17 @@ pub mod side_stacker {
             game.turn = game.turn.checked_add(1).unwrap();
             if game.turn == 49 {
                 game.status = "TIE".to_string();
-                emit!(GameEnded {
+                emit!(GameUpdated {
                     name,
                     board,
                     status: "TIE".to_string()
                 });
             } else {
-                emit!(GameUpdated { name, board });
+                emit!(GameUpdated {
+                    name,
+                    board,
+                    status: "PLAYING".to_string()
+                });
             }
         }
         Ok(())
@@ -131,12 +135,6 @@ pub struct GameCreated {
 
 #[event]
 pub struct GameUpdated {
-    name: String,
-    board: Vec<Play>,
-}
-
-#[event]
-pub struct GameEnded {
     name: String,
     board: Vec<Play>,
     status: String,

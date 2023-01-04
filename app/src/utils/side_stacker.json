@@ -157,25 +157,6 @@
             }
           },
           "index": false
-        }
-      ]
-    },
-    {
-      "name": "GameEnded",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "index": false
-        },
-        {
-          "name": "board",
-          "type": {
-            "vec": {
-              "defined": "Play"
-            }
-          },
-          "index": false
         },
         {
           "name": "status",

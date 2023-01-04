@@ -11,9 +11,6 @@ export const playGame = (program, gamePublicKey, cell, payer) => {
             systemProgram: web3.SystemProgram.programId,
           })
           .rpc();
-        console.log(
-          `https://explorer.solana.com/tx/${tx}?cluster=custom&customUrl=http://localhost:8899`
-        );
       })();
     }
   };
