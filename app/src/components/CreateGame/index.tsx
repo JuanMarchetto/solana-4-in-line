@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from "react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import * as web3 from "@solana/web3.js";
@@ -43,11 +42,7 @@ export const CreateGame: FC = ({}) => {
     }
   };
   return (
-    <>
-      <nav className="flex justify-between items-center px-16 py-4 bg-black">
-        <WalletMultiButton />
-      </nav>
-      <div>
+      <div className="flex flex-col p-5">
         {!wallet ? (
           <h1 className="text-white">Connect your wallet!</h1>
         ) : (
@@ -56,22 +51,23 @@ export const CreateGame: FC = ({}) => {
               placeholder="Gave your game a name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="p-5 mb-5"
             />
             <input
               placeholder="Copy your friends wallet here"
               value={player2}
               onChange={(e) => setPlayer2(e.target.value)}
+              className="p-5 mb-5"
             />
             <button
               type="button"
               onClick={player2 && handleClick}
-              className="bg-purple-700 text-white font-extrabold p-2 px-4"
+              className="bg-purple-700 text-white font-extrabold p-2 px-4 rounded-lg"
             >
               Create Game!
             </button>
           </>
         )}
       </div>
-    </>
   );
 };
