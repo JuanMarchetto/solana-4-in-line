@@ -5,6 +5,7 @@ import * as web3 from "@solana/web3.js";
 import { useRouter } from "next/router";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useProgram } from "../../utils/useProgram";
+import Link from "next/link";
 
 export const CreateGame: FC = ({}) => {
   const wallet = useAnchorWallet();
@@ -13,6 +14,8 @@ export const CreateGame: FC = ({}) => {
   const { program } = useProgram({ connection, wallet });
   const [player2, setPlayer2] = useState("");
   const [name, setName] = useState("");
+  const [error, setError] = useState<any>();
+  const [created, setCreated] = useState<boolean>(false);
   const handleClick = () => {
     if (program) {
       (async () => {
@@ -21,15 +24,19 @@ export const CreateGame: FC = ({}) => {
           [Buffer.from("game"), Buffer.from(name)],
           program.programId
         );
-
-        const tx = await program.methods
-          .createGame(name, [wallet.publicKey, player2Key])
-          .accounts({
-            game: gamePublicKey,
-            payer: wallet?.publicKey,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .rpc();
+        try {
+          const tx = await program.methods
+            .createGame(name, [wallet.publicKey, player2Key])
+            .accounts({
+              game: gamePublicKey,
+              payer: wallet?.publicKey,
+              systemProgram: web3.SystemProgram.programId,
+            })
+            .rpc();
+          setCreated(true);
+        } catch (error) {
+          setError(error);
+        }
       })();
     }
   };
@@ -48,7 +55,11 @@ export const CreateGame: FC = ({}) => {
     };
   }, [program]);
 
-  return (
+  return error ? (
+    <h1 className="text-white">
+      {error?.message ?? "ups something goes wrong"}
+    </h1>
+  ) : (
     <div className="flex flex-col p-5">
       {!wallet ? (
         <h1 className="text-white">Connect your wallet!</h1>
@@ -73,6 +84,14 @@ export const CreateGame: FC = ({}) => {
           >
             Create Game!
           </button>
+          {created && (
+            <div className="text-white text-center mt-5">
+              <strong>
+                If this don't redirect you automatically{" "}
+                <Link href={`/${name}`}>Click here</Link>
+              </strong>
+            </div>
+          )}
         </>
       )}
     </div>
