@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("CJMbPKQ12eGY4TYQLGnojtVjbA95EYVZKTv4NaAUmTUN");
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod side_stacker {
@@ -153,15 +153,15 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
     let posible_lines: Vec<Vec<usize>> = cells_of_player.into_iter().combinations(4).collect();
     posible_lines.iter().any(|line| {
         (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
-            || (((line[0] / 7 == (line[1] / 7) - 1)
-                && (line[1] / 7 == (line[2] / 7) - 1)
-                && (line[2] / 7 == (line[3] / 7) - 1))
+            || ((((line[0] / 7) + 1 == line[1] / 7)
+                && ((line[1] / 7) + 1 == line[2] / 7)
+                && ((line[2] / 7) + 1 == line[3] / 7))
                 && (((line[0] % 7 == line[1] % 7)
                     && (line[1] % 7 == line[2] % 7)
                     && (line[2] % 7 == line[3] % 7))
-                    || ((line[0] % 7 == (line[1] % 7) - 1)
-                        && (line[1] % 7 == (line[2] % 7) - 1)
-                        && (line[2] % 7 == (line[3] % 7) - 1))
+                    || (((line[0] % 7) + 1 == line[1] % 7)
+                        && ((line[1] % 7) + 1 == line[2] % 7)
+                        && ((line[2] % 7) + 1 == line[3] % 7))
                     || ((line[0] % 7 == (line[1] % 7) + 1)
                         && (line[1] % 7 == (line[2] % 7) + 1)
                         && (line[2] % 7 == (line[3] % 7) + 1))))
