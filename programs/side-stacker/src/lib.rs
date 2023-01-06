@@ -137,8 +137,8 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
             }
             acc
         });
-    let posible_lines: Vec<Vec<usize>> = cells_of_player.into_iter().combinations(4).collect();
-    posible_lines.iter().any(|line| {
+    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> = cells_of_player.into_iter().combinations(4);
+    posible_lines.any(|line| {
         (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
             || ((((line[0] / 7) + 1 == line[1] / 7)
                 && ((line[1] / 7) + 1 == line[2] / 7)
