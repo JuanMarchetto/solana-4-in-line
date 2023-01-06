@@ -12,21 +12,21 @@ export const CreateGame: FC = ({}) => {
   const router = useRouter();
   const { connection } = useConnection();
   const { program } = useProgram({ connection, wallet });
-  const [player2, setPlayer2] = useState("");
+  const [player2, setPlayer2] = useState("pc");
   const [name, setName] = useState("");
   const [error, setError] = useState<any>();
   const [created, setCreated] = useState<boolean>(false);
   const handleClick = () => {
     if (program) {
       (async () => {
-        const player2Key = new PublicKey(player2);
+        const player2Key = player2 == "pc" ? player2 : new PublicKey(player2);
         const [gamePublicKey] = web3.PublicKey.findProgramAddressSync(
           [Buffer.from("game"), Buffer.from(name)],
           program.programId
         );
         try {
           const tx = await program.methods
-            .createGame(name, [wallet.publicKey, player2Key])
+            .createGame(name, player2 == "pc" ? [wallet.publicKey] :[wallet.publicKey, player2Key], "pc")
             .accounts({
               game: gamePublicKey,
               payer: wallet?.publicKey,

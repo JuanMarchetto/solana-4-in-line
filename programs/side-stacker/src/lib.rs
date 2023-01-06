@@ -1,18 +1,19 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("5XRnziMa2t5DfEWgLAghvRHQddKiQEgRm4FA4nGDv4Kj");
+declare_id!("AKMAR3mhNVApeDtiFZ2VC1emcY3NBhLBDx8oCPmdyEuY");
 
 #[program]
 pub mod side_stacker {
     use super::*;
 
-    pub fn create_game(ctx: Context<CreateGame>, name: String, players: Vec<Pubkey>) -> Result<()> {
+    pub fn create_game(ctx: Context<CreateGame>, name: String, players: Vec<Pubkey>, game_type: String) -> Result<()> {
         let game = &mut ctx.accounts.game;
         game.board = vec![Play::Empty; 49];
         game.name = (*name).to_string();
         game.players = players;
         game.status = "PLAYING".to_string();
+        game.game_type = game_type;
         emit!(GameCreated { name });
         Ok(())
     }
@@ -27,13 +28,7 @@ pub mod side_stacker {
         if player.key() != game.players[turn] {
             return Err(error!(ErrorCode::IncorrectUser));
         }
-        let is_valid_cell = game.board[play as usize] == Play::Empty
-            && (play % 7 == 0
-                || play % 7 == 6
-                || (play > 0 && game.board[play as usize - 1] != Play::Empty
-                    || (play as usize) < game.board.len() - 1
-                        && game.board[play as usize + 1] != Play::Empty));
-        if !is_valid_cell {
+        if !is_valid_cell((*game.board).to_vec(), play as usize) {
             return Err(error!(ErrorCode::InvalidCell));
         }
         let mut board = (*game.board).to_vec();
@@ -52,6 +47,24 @@ pub mod side_stacker {
             game.status = "TIE".to_string();
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
+            if game.game_type == "pc" {
+                let (pc_cell, _) = board.iter().enumerate().find(|(index, cell)|**cell == Play::Empty && is_valid_cell((*board).to_vec(), *index)).unwrap();
+                board[pc_cell]= if turn == 1 { Play::O } else { Play::X };
+                game.board = (*board).to_vec();
+                if player_win((*board).to_vec(), pc_cell as usize) {
+                    let status = format!(
+                        "PC Wins!, {:#?} Loss!",
+                        game.players[turn]
+                    );
+                    game.status = (*status).to_string();
+                } else {
+                    if game.turn == 48 {
+                        game.status = "TIE".to_string();
+                    }
+                    game.turn = game.turn.checked_add(1).unwrap();
+                }
+            }
+
         }
         emit!(GameUpdated {
             name: (*game.name).to_string(),
@@ -92,6 +105,7 @@ pub struct Playing<'info> {
 #[account]
 pub struct Game {
     pub name: String,
+    pub game_type: String,
     pub board: Vec<Play>,
     pub players: Vec<Pubkey>,
     pub turn: u8,
@@ -153,4 +167,13 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
                         && (line[1] % 7 == (line[2] % 7) + 1)
                         && (line[2] % 7 == (line[3] % 7) + 1))))
     })
+}
+
+fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
+    board[play] == Play::Empty
+            && (play % 7 == 0
+                || play % 7 == 6
+                || (play > 0 && board[play - 1] != Play::Empty
+                    || play < board.len() - 1
+                        && board[play + 1] != Play::Empty))
 }

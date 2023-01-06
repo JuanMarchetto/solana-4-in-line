@@ -45,6 +45,10 @@
           "type": {
             "vec": "publicKey"
           }
+        },
+        {
+          "name": "gameType",
+          "type": "string"
         }
       ]
     },
@@ -83,6 +87,10 @@
         "fields": [
           {
             "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "gameType",
             "type": "string"
           },
           {
@@ -184,6 +192,6 @@
     }
   ],
   "metadata": {
-    "address": "2UNd1CE1yVcsvuYt5q3puNoLaJznDL2mjz4QtxUxb8xm"
+    "address": "AKMAR3mhNVApeDtiFZ2VC1emcY3NBhLBDx8oCPmdyEuY"
   }
 }
