@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("5XRnziMa2t5DfEWgLAghvRHQddKiQEgRm4FA4nGDv4Kj");
 
 #[program]
 pub mod side_stacker {
@@ -36,7 +36,6 @@ pub mod side_stacker {
         if !is_valid_cell {
             return Err(error!(ErrorCode::InvalidCell));
         }
-        let name = (*game.name).to_string();
         let mut board = (*game.board).to_vec();
         let cell_value = if turn == 0 { Play::O } else { Play::X };
         board[play as usize] = cell_value;
@@ -49,28 +48,16 @@ pub mod side_stacker {
                 game.players[turn.checked_add(1).unwrap()]
             );
             game.status = (*status).to_string();
-            emit!(GameUpdated {
-                name,
-                board,
-                status
-            });
+        } else if game.turn == 48 {
+            game.status = "TIE".to_string();
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
-            if game.turn == 49 {
-                game.status = "TIE".to_string();
-                emit!(GameUpdated {
-                    name,
-                    board,
-                    status: "TIE".to_string()
-                });
-            } else {
-                emit!(GameUpdated {
-                    name,
-                    board,
-                    status: "PLAYING".to_string()
-                });
-            }
         }
+        emit!(GameUpdated {
+            name: (*game.name).to_string(),
+            board: (*game.board).to_vec(),
+            status: (*game.status).to_string()
+        });
         Ok(())
     }
 }
