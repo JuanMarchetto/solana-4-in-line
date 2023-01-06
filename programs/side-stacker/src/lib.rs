@@ -7,7 +7,12 @@ declare_id!("AKMAR3mhNVApeDtiFZ2VC1emcY3NBhLBDx8oCPmdyEuY");
 pub mod side_stacker {
     use super::*;
 
-    pub fn create_game(ctx: Context<CreateGame>, name: String, players: Vec<Pubkey>, game_type: String) -> Result<()> {
+    pub fn create_game(
+        ctx: Context<CreateGame>,
+        name: String,
+        players: Vec<Pubkey>,
+        game_type: String,
+    ) -> Result<()> {
         let game = &mut ctx.accounts.game;
         game.board = vec![Play::Empty; 49];
         game.name = (*name).to_string();
@@ -48,14 +53,20 @@ pub mod side_stacker {
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
             if game.game_type == "pc" {
-                let (pc_cell, _) = board.iter().enumerate().find(|(index, cell)|**cell == Play::Empty && is_valid_cell((*board).to_vec(), *index)).unwrap();
-                board[pc_cell]= if turn == 1 { Play::O } else { Play::X };
+                let possible_pc_cell: Vec<(usize, &Play)> = board
+                    .iter()
+                    .enumerate()
+                    .filter(|(index, cell)| {
+                        **cell == Play::Empty && is_valid_cell((*board).to_vec(), *index)
+                    })
+                    .collect();
+                let clock = Clock::get()?;
+                let random = clock.unix_timestamp as usize % possible_pc_cell.len();
+                let (pc_cell, _) = possible_pc_cell[random];
+                board[pc_cell] = if turn == 1 { Play::O } else { Play::X };
                 game.board = (*board).to_vec();
                 if player_win((*board).to_vec(), pc_cell as usize) {
-                    let status = format!(
-                        "PC Wins!, {:#?} Loss!",
-                        game.players[turn]
-                    );
+                    let status = format!("PC Wins!, {:#?} Loss!", game.players[turn]);
                     game.status = (*status).to_string();
                 } else {
                     if game.turn == 48 {
@@ -64,7 +75,6 @@ pub mod side_stacker {
                     game.turn = game.turn.checked_add(1).unwrap();
                 }
             }
-
         }
         emit!(GameUpdated {
             name: (*game.name).to_string(),
@@ -151,7 +161,8 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
             }
             acc
         });
-    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> = cells_of_player.into_iter().combinations(4);
+    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> =
+        cells_of_player.into_iter().combinations(4);
     posible_lines.any(|line| {
         (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
             || ((((line[0] / 7) + 1 == line[1] / 7)
@@ -171,9 +182,8 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
 
 fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
     board[play] == Play::Empty
-            && (play % 7 == 0
-                || play % 7 == 6
-                || (play > 0 && board[play - 1] != Play::Empty
-                    || play < board.len() - 1
-                        && board[play + 1] != Play::Empty))
+        && (play % 7 == 0
+            || play % 7 == 6
+            || (play > 0 && board[play - 1] != Play::Empty
+                || play < board.len() - 1 && board[play + 1] != Play::Empty))
 }
