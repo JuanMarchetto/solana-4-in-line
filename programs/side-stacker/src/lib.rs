@@ -156,34 +156,30 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
         .iter()
         .enumerate()
         .fold([].to_vec(), |mut acc, (index, cell)| {
-            if *cell == board[play] {
+            if *cell == board[play] && (index % 7 == play % 7
+            || index / 7 == play / 7
+            || index % 8 == play % 8
+            || index % 6 == play % 6) {
                 acc.push(index)
             }
             acc
         });
-    let relevant_cells = cells_of_player
-        .iter()
-        .filter(|cell| {
-            **cell % 7 == play % 7
-                || **cell / 7 == play / 7
-                || **cell % 8 == play % 8
-                || **cell % 6 == play % 6
-        })
-        .collect::<Vec<&usize>>();
-    relevant_cells.iter().combinations(4).any(|line| {
-        (**line[0] / 7 == **line[3] / 7 && **line[3] - **line[0] == 3)
-            || ((((**line[0] / 7) + 1 == **line[1] / 7)
-                && ((**line[1] / 7) + 1 == **line[2] / 7)
-                && ((**line[2] / 7) + 1 == **line[3] / 7))
-                && (((**line[0] % 7 == **line[1] % 7)
-                    && (**line[1] % 7 == **line[2] % 7)
-                    && (**line[2] % 7 == **line[3] % 7))
-                    || (((**line[0] % 7) + 1 == **line[1] % 7)
-                        && ((**line[1] % 7) + 1 == **line[2] % 7)
-                        && ((**line[2] % 7) + 1 == **line[3] % 7))
-                    || ((**line[0] % 7 == (**line[1] % 7) + 1)
-                        && (**line[1] % 7 == (**line[2] % 7) + 1)
-                        && (**line[2] % 7 == (**line[3] % 7) + 1))))
+    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> =
+        cells_of_player.into_iter().combinations(4);
+    posible_lines.any(|line| {
+        (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
+            || ((((line[0] / 7) + 1 == line[1] / 7)
+                && ((line[1] / 7) + 1 == line[2] / 7)
+                && ((line[2] / 7) + 1 == line[3] / 7))
+                && (((line[0] % 7 == line[1] % 7)
+                    && (line[1] % 7 == line[2] % 7)
+                    && (line[2] % 7 == line[3] % 7))
+                    || (((line[0] % 7) + 1 == line[1] % 7)
+                        && ((line[1] % 7) + 1 == line[2] % 7)
+                        && ((line[2] % 7) + 1 == line[3] % 7))
+                    || ((line[0] % 7 == (line[1] % 7) + 1)
+                        && (line[1] % 7 == (line[2] % 7) + 1)
+                        && (line[2] % 7 == (line[3] % 7) + 1))))
     })
 }
 
