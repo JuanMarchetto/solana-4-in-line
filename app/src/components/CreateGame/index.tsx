@@ -26,7 +26,13 @@ export const CreateGame: FC = ({}) => {
         );
         try {
           const tx = await program.methods
-            .createGame(name, player2 == "pc" ? [wallet.publicKey] :[wallet.publicKey, player2Key], player2)
+            .createGame(
+              name,
+              player2 == "pc"
+                ? [wallet.publicKey]
+                : [wallet.publicKey, player2Key],
+              player2 == "pc" ? player2 : "COMMON"
+            )
             .accounts({
               game: gamePublicKey,
               payer: wallet?.publicKey,
