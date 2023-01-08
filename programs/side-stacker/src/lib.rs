@@ -162,38 +162,39 @@ pub struct GameUpdated {
 }
 
 fn player_win(board: Vec<Play>, play: usize) -> bool {
-    let relevant_cells_of_player =
-        board
-            .iter()
-            .enumerate()
-            .fold([].to_vec(), |mut acc, (index, cell)| {
-                if *cell == board[play]
-                    && (index % CELLS_PER_ROW == play % CELLS_PER_ROW
-                        || index / CELLS_PER_ROW == play / CELLS_PER_ROW
-                        || index % (CELLS_PER_ROW + 1) == play % (CELLS_PER_ROW + 1)
-                        || index % (CELLS_PER_ROW - 1) == play % (CELLS_PER_ROW - 1))
-                {
-                    acc.push(index)
-                }
-                acc
-            });
-    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> =
-        relevant_cells_of_player.into_iter().combinations(4);
-    posible_lines.any(|line| {
-        (line[0] / CELLS_PER_ROW == line[3] / CELLS_PER_ROW && line[3] - line[0] == 3)
-            || ((((line[0] / CELLS_PER_ROW) + 1 == line[1] / CELLS_PER_ROW)
-                && ((line[1] / CELLS_PER_ROW) + 1 == line[2] / CELLS_PER_ROW)
-                && ((line[2] / CELLS_PER_ROW) + 1 == line[3] / CELLS_PER_ROW))
-                && (((line[0] % CELLS_PER_ROW == line[1] % CELLS_PER_ROW)
-                    && (line[1] % CELLS_PER_ROW == line[2] % CELLS_PER_ROW)
-                    && (line[2] % CELLS_PER_ROW == line[3] % CELLS_PER_ROW))
-                    || (((line[0] % CELLS_PER_ROW) + 1 == line[1] % CELLS_PER_ROW)
-                        && ((line[1] % CELLS_PER_ROW) + 1 == line[2] % CELLS_PER_ROW)
-                        && ((line[2] % CELLS_PER_ROW) + 1 == line[3] % CELLS_PER_ROW))
-                    || ((line[0] % CELLS_PER_ROW == (line[1] % CELLS_PER_ROW) + 1)
-                        && (line[1] % CELLS_PER_ROW == (line[2] % CELLS_PER_ROW) + 1)
-                        && (line[2] % CELLS_PER_ROW == (line[3] % CELLS_PER_ROW) + 1))))
-    })
+    board
+        .iter()
+        .enumerate()
+        .fold([].to_vec(), |mut acc, (index, cell)| {
+            if *cell == board[play]
+                && (index % CELLS_PER_ROW == play % CELLS_PER_ROW
+                    || index / CELLS_PER_ROW == play / CELLS_PER_ROW
+                    || index % (CELLS_PER_ROW + 1) == play % (CELLS_PER_ROW + 1)
+                    || index % (CELLS_PER_ROW - 1) == play % (CELLS_PER_ROW - 1))
+                && (diff(index % CELLS_PER_ROW, play % CELLS_PER_ROW) < 4
+                    || diff(index / CELLS_PER_ROW, play / CELLS_PER_ROW) < 4)
+            {
+                acc.push(index)
+            }
+            acc
+        })
+        .into_iter()
+        .combinations(4)
+        .any(|line| {
+            (line[0] / CELLS_PER_ROW == line[3] / CELLS_PER_ROW && line[3] - line[0] == 3)
+                || ((((line[0] / CELLS_PER_ROW) + 1 == line[1] / CELLS_PER_ROW)
+                    && ((line[1] / CELLS_PER_ROW) + 1 == line[2] / CELLS_PER_ROW)
+                    && ((line[2] / CELLS_PER_ROW) + 1 == line[3] / CELLS_PER_ROW))
+                    && (((line[0] % CELLS_PER_ROW == line[1] % CELLS_PER_ROW)
+                        && (line[1] % CELLS_PER_ROW == line[2] % CELLS_PER_ROW)
+                        && (line[2] % CELLS_PER_ROW == line[3] % CELLS_PER_ROW))
+                        || (((line[0] % CELLS_PER_ROW) + 1 == line[1] % CELLS_PER_ROW)
+                            && ((line[1] % CELLS_PER_ROW) + 1 == line[2] % CELLS_PER_ROW)
+                            && ((line[2] % CELLS_PER_ROW) + 1 == line[3] % CELLS_PER_ROW))
+                        || ((line[0] % CELLS_PER_ROW == (line[1] % CELLS_PER_ROW) + 1)
+                            && (line[1] % CELLS_PER_ROW == (line[2] % CELLS_PER_ROW) + 1)
+                            && (line[2] % CELLS_PER_ROW == (line[3] % CELLS_PER_ROW) + 1))))
+        })
 }
 
 fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
@@ -202,4 +203,12 @@ fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
             || play % CELLS_PER_ROW == (CELLS_PER_ROW - 1)
             || (play > 0 && board[play - 1] != Play::Empty
                 || play < board.len() - 1 && board[play + 1] != Play::Empty))
+}
+
+fn diff(n1: usize, n2: usize) -> usize {
+    if n1 > n2 {
+        n1 - n2
+    } else {
+        n2 - n1
+    }
 }
