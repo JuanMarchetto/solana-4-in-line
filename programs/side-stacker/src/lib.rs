@@ -48,7 +48,14 @@ pub mod side_stacker {
             let status = format!(
                 "{:#?} Wins!, {:#?} Loss!",
                 game.players[turn],
-                game.players[turn.checked_add(1).unwrap() % game.players.len()]
+                if game.game_type == "pc" {
+                    "pc".to_string()
+                } else {
+                    format!(
+                        "{:#?}",
+                        game.players[turn.checked_add(1).unwrap() % game.players.len()]
+                    )
+                }
             );
             game.status = (*status).to_string();
         } else if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1 {
@@ -72,7 +79,7 @@ pub mod side_stacker {
                     let status = format!("PC Wins!, {:#?} Loss!", game.players[turn]);
                     game.status = (*status).to_string();
                 } else {
-                    if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1  {
+                    if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1 {
                         game.status = "TIE".to_string();
                     }
                     game.turn = game.turn.checked_add(1).unwrap();
