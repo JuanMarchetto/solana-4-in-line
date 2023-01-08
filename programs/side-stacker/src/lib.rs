@@ -3,6 +3,9 @@ use itertools::Itertools;
 
 declare_id!("AKMAR3mhNVApeDtiFZ2VC1emcY3NBhLBDx8oCPmdyEuY");
 
+const ROWS: usize = 7;
+const CELLS_PER_ROW: usize = 7;
+
 #[program]
 pub mod side_stacker {
     use super::*;
@@ -14,7 +17,7 @@ pub mod side_stacker {
         game_type: String,
     ) -> Result<()> {
         let game = &mut ctx.accounts.game;
-        game.board = vec![Play::Empty; 49];
+        game.board = vec![Play::Empty; ROWS * CELLS_PER_ROW];
         game.name = (*name).to_string();
         game.players = players;
         game.status = "PLAYING".to_string();
@@ -48,7 +51,7 @@ pub mod side_stacker {
                 game.players[turn.checked_add(1).unwrap() % game.players.len()]
             );
             game.status = (*status).to_string();
-        } else if game.turn == 48 {
+        } else if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1 {
             game.status = "TIE".to_string();
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
@@ -69,7 +72,7 @@ pub mod side_stacker {
                     let status = format!("PC Wins!, {:#?} Loss!", game.players[turn]);
                     game.status = (*status).to_string();
                 } else {
-                    if game.turn == 48 {
+                    if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1  {
                         game.status = "TIE".to_string();
                     }
                     game.turn = game.turn.checked_add(1).unwrap();
@@ -158,10 +161,10 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
             .enumerate()
             .fold([].to_vec(), |mut acc, (index, cell)| {
                 if *cell == board[play]
-                    && (index % 7 == play % 7
-                        || index / 7 == play / 7
-                        || index % 8 == play % 8
-                        || index % 6 == play % 6)
+                    && (index % CELLS_PER_ROW == play % CELLS_PER_ROW
+                        || index / CELLS_PER_ROW == play / CELLS_PER_ROW
+                        || index % (CELLS_PER_ROW + 1) == play % (CELLS_PER_ROW + 1)
+                        || index % (CELLS_PER_ROW - 1) == play % (CELLS_PER_ROW - 1))
                 {
                     acc.push(index)
                 }
@@ -170,26 +173,26 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
     let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> =
         relevant_cells_of_player.into_iter().combinations(4);
     posible_lines.any(|line| {
-        (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
-            || ((((line[0] / 7) + 1 == line[1] / 7)
-                && ((line[1] / 7) + 1 == line[2] / 7)
-                && ((line[2] / 7) + 1 == line[3] / 7))
-                && (((line[0] % 7 == line[1] % 7)
-                    && (line[1] % 7 == line[2] % 7)
-                    && (line[2] % 7 == line[3] % 7))
-                    || (((line[0] % 7) + 1 == line[1] % 7)
-                        && ((line[1] % 7) + 1 == line[2] % 7)
-                        && ((line[2] % 7) + 1 == line[3] % 7))
-                    || ((line[0] % 7 == (line[1] % 7) + 1)
-                        && (line[1] % 7 == (line[2] % 7) + 1)
-                        && (line[2] % 7 == (line[3] % 7) + 1))))
+        (line[0] / CELLS_PER_ROW == line[3] / CELLS_PER_ROW && line[3] - line[0] == 3)
+            || ((((line[0] / CELLS_PER_ROW) + 1 == line[1] / CELLS_PER_ROW)
+                && ((line[1] / CELLS_PER_ROW) + 1 == line[2] / CELLS_PER_ROW)
+                && ((line[2] / CELLS_PER_ROW) + 1 == line[3] / CELLS_PER_ROW))
+                && (((line[0] % CELLS_PER_ROW == line[1] % CELLS_PER_ROW)
+                    && (line[1] % CELLS_PER_ROW == line[2] % CELLS_PER_ROW)
+                    && (line[2] % CELLS_PER_ROW == line[3] % CELLS_PER_ROW))
+                    || (((line[0] % CELLS_PER_ROW) + 1 == line[1] % CELLS_PER_ROW)
+                        && ((line[1] % CELLS_PER_ROW) + 1 == line[2] % CELLS_PER_ROW)
+                        && ((line[2] % CELLS_PER_ROW) + 1 == line[3] % CELLS_PER_ROW))
+                    || ((line[0] % CELLS_PER_ROW == (line[1] % CELLS_PER_ROW) + 1)
+                        && (line[1] % CELLS_PER_ROW == (line[2] % CELLS_PER_ROW) + 1)
+                        && (line[2] % CELLS_PER_ROW == (line[3] % CELLS_PER_ROW) + 1))))
     })
 }
 
 fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
     board[play] == Play::Empty
-        && (play % 7 == 0
-            || play % 7 == 6
+        && (play % CELLS_PER_ROW == 0
+            || play % CELLS_PER_ROW == (CELLS_PER_ROW - 1)
             || (play > 0 && board[play - 1] != Play::Empty
                 || play < board.len() - 1 && board[play + 1] != Play::Empty))
 }
