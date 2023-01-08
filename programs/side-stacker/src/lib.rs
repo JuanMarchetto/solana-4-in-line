@@ -1,18 +1,27 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("5XRnziMa2t5DfEWgLAghvRHQddKiQEgRm4FA4nGDv4Kj");
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+const ROWS: usize = 7;
+const CELLS_PER_ROW: usize = 7;
 
 #[program]
 pub mod side_stacker {
     use super::*;
 
-    pub fn create_game(ctx: Context<CreateGame>, name: String, players: Vec<Pubkey>) -> Result<()> {
+    pub fn create_game(
+        ctx: Context<CreateGame>,
+        name: String,
+        players: Vec<Pubkey>,
+        game_type: String,
+    ) -> Result<()> {
         let game = &mut ctx.accounts.game;
-        game.board = vec![Play::Empty; 49];
+        game.board = vec![Play::Empty; ROWS * CELLS_PER_ROW];
         game.name = (*name).to_string();
         game.players = players;
         game.status = "PLAYING".to_string();
+        game.game_type = game_type;
         emit!(GameCreated { name });
         Ok(())
     }
@@ -27,13 +36,7 @@ pub mod side_stacker {
         if player.key() != game.players[turn] {
             return Err(error!(ErrorCode::IncorrectUser));
         }
-        let is_valid_cell = game.board[play as usize] == Play::Empty
-            && (play % 7 == 0
-                || play % 7 == 6
-                || (play > 0 && game.board[play as usize - 1] != Play::Empty
-                    || (play as usize) < game.board.len() - 1
-                        && game.board[play as usize + 1] != Play::Empty));
-        if !is_valid_cell {
+        if !is_valid_cell((*game.board).to_vec(), play as usize) {
             return Err(error!(ErrorCode::InvalidCell));
         }
         let mut board = (*game.board).to_vec();
@@ -45,13 +48,43 @@ pub mod side_stacker {
             let status = format!(
                 "{:#?} Wins!, {:#?} Loss!",
                 game.players[turn],
-                game.players[turn.checked_add(1).unwrap()]
+                if game.game_type == "pc" {
+                    "pc".to_string()
+                } else {
+                    format!(
+                        "{:#?}",
+                        game.players[turn.checked_add(1).unwrap() % game.players.len()]
+                    )
+                }
             );
             game.status = (*status).to_string();
-        } else if game.turn == 48 {
+        } else if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1 {
             game.status = "TIE".to_string();
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
+            if game.game_type == "pc" {
+                let possible_pc_cell: Vec<(usize, &Play)> = board
+                    .iter()
+                    .enumerate()
+                    .filter(|(index, cell)| {
+                        **cell == Play::Empty && is_valid_cell((*board).to_vec(), *index)
+                    })
+                    .collect();
+                let clock = Clock::get()?;
+                let random = clock.unix_timestamp as usize % possible_pc_cell.len();
+                let (pc_cell, _) = possible_pc_cell[random];
+                board[pc_cell] = if turn == 1 { Play::O } else { Play::X };
+                game.board = (*board).to_vec();
+                if player_win((*board).to_vec(), pc_cell as usize) {
+                    let status = format!("PC Wins!, {:#?} Loss!", game.players[turn]);
+                    game.status = (*status).to_string();
+                } else {
+                    if game.turn == (ROWS * CELLS_PER_ROW) as u8 - 1 {
+                        game.status = "TIE".to_string();
+                    }
+                    game.turn = game.turn.checked_add(1).unwrap();
+                }
+            }
         }
         emit!(GameUpdated {
             name: (*game.name).to_string(),
@@ -92,6 +125,7 @@ pub struct Playing<'info> {
 #[account]
 pub struct Game {
     pub name: String,
+    pub game_type: String,
     pub board: Vec<Play>,
     pub players: Vec<Pubkey>,
     pub turn: u8,
@@ -128,29 +162,44 @@ pub struct GameUpdated {
 }
 
 fn player_win(board: Vec<Play>, play: usize) -> bool {
-    let cells_of_player = board
-        .iter()
-        .enumerate()
-        .fold([].to_vec(), |mut acc, (index, cell)| {
-            if *cell == board[play] {
-                acc.push(index)
-            }
-            acc
-        });
-    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> = cells_of_player.into_iter().combinations(4);
+    let relevant_cells_of_player =
+        board
+            .iter()
+            .enumerate()
+            .fold([].to_vec(), |mut acc, (index, cell)| {
+                if *cell == board[play]
+                    && (index % CELLS_PER_ROW == play % CELLS_PER_ROW
+                        || index / CELLS_PER_ROW == play / CELLS_PER_ROW
+                        || index % (CELLS_PER_ROW + 1) == play % (CELLS_PER_ROW + 1)
+                        || index % (CELLS_PER_ROW - 1) == play % (CELLS_PER_ROW - 1))
+                {
+                    acc.push(index)
+                }
+                acc
+            });
+    let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> =
+        relevant_cells_of_player.into_iter().combinations(4);
     posible_lines.any(|line| {
-        (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
-            || ((((line[0] / 7) + 1 == line[1] / 7)
-                && ((line[1] / 7) + 1 == line[2] / 7)
-                && ((line[2] / 7) + 1 == line[3] / 7))
-                && (((line[0] % 7 == line[1] % 7)
-                    && (line[1] % 7 == line[2] % 7)
-                    && (line[2] % 7 == line[3] % 7))
-                    || (((line[0] % 7) + 1 == line[1] % 7)
-                        && ((line[1] % 7) + 1 == line[2] % 7)
-                        && ((line[2] % 7) + 1 == line[3] % 7))
-                    || ((line[0] % 7 == (line[1] % 7) + 1)
-                        && (line[1] % 7 == (line[2] % 7) + 1)
-                        && (line[2] % 7 == (line[3] % 7) + 1))))
+        (line[0] / CELLS_PER_ROW == line[3] / CELLS_PER_ROW && line[3] - line[0] == 3)
+            || ((((line[0] / CELLS_PER_ROW) + 1 == line[1] / CELLS_PER_ROW)
+                && ((line[1] / CELLS_PER_ROW) + 1 == line[2] / CELLS_PER_ROW)
+                && ((line[2] / CELLS_PER_ROW) + 1 == line[3] / CELLS_PER_ROW))
+                && (((line[0] % CELLS_PER_ROW == line[1] % CELLS_PER_ROW)
+                    && (line[1] % CELLS_PER_ROW == line[2] % CELLS_PER_ROW)
+                    && (line[2] % CELLS_PER_ROW == line[3] % CELLS_PER_ROW))
+                    || (((line[0] % CELLS_PER_ROW) + 1 == line[1] % CELLS_PER_ROW)
+                        && ((line[1] % CELLS_PER_ROW) + 1 == line[2] % CELLS_PER_ROW)
+                        && ((line[2] % CELLS_PER_ROW) + 1 == line[3] % CELLS_PER_ROW))
+                    || ((line[0] % CELLS_PER_ROW == (line[1] % CELLS_PER_ROW) + 1)
+                        && (line[1] % CELLS_PER_ROW == (line[2] % CELLS_PER_ROW) + 1)
+                        && (line[2] % CELLS_PER_ROW == (line[3] % CELLS_PER_ROW) + 1))))
     })
+}
+
+fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
+    board[play] == Play::Empty
+        && (play % CELLS_PER_ROW == 0
+            || play % CELLS_PER_ROW == (CELLS_PER_ROW - 1)
+            || (play > 0 && board[play - 1] != Play::Empty
+                || play < board.len() - 1 && board[play + 1] != Play::Empty))
 }
