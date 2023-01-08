@@ -6,8 +6,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 import "../styles/globals.css";
 
-const endpoint = 'http://localhost:8899'
-//const endpoint = 'https://api.devnet.solana.com'
+//const endpoint = 'http://localhost:8899'
+const endpoint = 'https://api.devnet.solana.com'
 
 const WalletProvider = dynamic(
   () => import("../contexts/ClientWalletProvider"),

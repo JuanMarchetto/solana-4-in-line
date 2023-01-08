@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use itertools::Itertools;
 
-declare_id!("AKMAR3mhNVApeDtiFZ2VC1emcY3NBhLBDx8oCPmdyEuY");
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 const ROWS: usize = 7;
 const CELLS_PER_ROW: usize = 7;
