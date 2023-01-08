@@ -45,7 +45,7 @@ pub mod side_stacker {
             let status = format!(
                 "{:#?} Wins!, {:#?} Loss!",
                 game.players[turn],
-                game.players[turn.checked_add(1).unwrap()]
+                game.players[turn.checked_add(1).unwrap() % game.players.len()]
             );
             game.status = (*status).to_string();
         } else if game.turn == 48 {
@@ -152,20 +152,23 @@ pub struct GameUpdated {
 }
 
 fn player_win(board: Vec<Play>, play: usize) -> bool {
-    let cells_of_player = board
-        .iter()
-        .enumerate()
-        .fold([].to_vec(), |mut acc, (index, cell)| {
-            if *cell == board[play] && (index % 7 == play % 7
-            || index / 7 == play / 7
-            || index % 8 == play % 8
-            || index % 6 == play % 6) {
-                acc.push(index)
-            }
-            acc
-        });
+    let relevant_cells_of_player =
+        board
+            .iter()
+            .enumerate()
+            .fold([].to_vec(), |mut acc, (index, cell)| {
+                if *cell == board[play]
+                    && (index % 7 == play % 7
+                        || index / 7 == play / 7
+                        || index % 8 == play % 8
+                        || index % 6 == play % 6)
+                {
+                    acc.push(index)
+                }
+                acc
+            });
     let mut posible_lines: itertools::Combinations<std::vec::IntoIter<usize>> =
-        cells_of_player.into_iter().combinations(4);
+        relevant_cells_of_player.into_iter().combinations(4);
     posible_lines.any(|line| {
         (line[0] / 7 == line[3] / 7 && line[3] - line[0] == 3)
             || ((((line[0] / 7) + 1 == line[1] / 7)
