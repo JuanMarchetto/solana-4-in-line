@@ -25,7 +25,8 @@ describe("side-stacker", () => {
       [
         payer.publicKey,
         player2
-      ]
+      ],
+      ""
     )
       .accounts({
         payer: payer.publicKey
