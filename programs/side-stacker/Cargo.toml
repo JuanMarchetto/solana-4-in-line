@@ -1,12 +1,12 @@
 [package]
-name = "side-stacker"
+name = "four-in-line"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "side_stacker"
+name = "four_in_line"
 
 [features]
 no-entrypoint = []

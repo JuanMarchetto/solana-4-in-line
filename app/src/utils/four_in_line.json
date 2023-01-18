@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "name": "side_stacker",
+  "name": "four_in_line",
   "instructions": [
     {
       "name": "createGame",
@@ -192,6 +192,6 @@
     }
   ],
   "metadata": {
-    "address": "3Fh3GC4g1wSwiJ7nvDYQFqk4crgeZsbk3iwdUGjKdodk"
+    "address": "9Je7YTDcahTVdZPq86cjRgu3wPfgR9isP6org3znnkc9"
   }
 }

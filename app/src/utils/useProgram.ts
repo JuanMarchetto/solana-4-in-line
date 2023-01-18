@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 
-import idl from "./side_stacker.json"
+import idl from "./four_in_line.json"
 
-
-const SIDE_STACKER_PROGRAM = idl.metadata.address;
-const programID = new PublicKey(SIDE_STACKER_PROGRAM);
+const FOUR_IN_LINE_PROGRAM = idl.metadata.address;
+const programID = new PublicKey(FOUR_IN_LINE_PROGRAM);
 
 export interface Wallet {
   signTransaction(

@@ -1,15 +1,15 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import { SideStacker } from "../target/types/side_stacker";
+import { FourInLine } from "../target/types/four_in_line";
 import { PublicKey, SystemProgram } from "@solana/web3.js"
 import * as web3 from "@solana/web3.js"
 
-describe("side-stacker", () => {
+describe("four-in-line", () => {
   const name = "Test Game"
 
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.SideStacker as Program<SideStacker>;
+  const program = anchor.workspace.FourInLine as Program<FourInLine>;
   const payer = (program.provider as anchor.AnchorProvider).wallet;
   const player2 = new PublicKey("EjPpXXDykPawauyZHsBMtxGwG7K4iFmxdvB6ockM56ZN")
 

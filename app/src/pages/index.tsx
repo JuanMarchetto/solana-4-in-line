@@ -6,8 +6,8 @@ const Home: NextPage = (props) => {
   return (
     <>
       <Head>
-        <title>Solana Side Stacker Game!</title>
-        <meta name="description" content="Solana Side Stacker Game!" />
+        <title>Solana Four in Line Game!</title>
+        <meta name="description" content="Solana Four in Line Game!" />
       </Head>
       <CreateGame />
     </>

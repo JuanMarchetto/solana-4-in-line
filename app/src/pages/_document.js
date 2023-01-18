@@ -7,7 +7,7 @@ class MyDocument extends Document {
         <Head>
           <meta
             name="description"
-            content="Solana Side Stacker Game!"
+            content="Solana Four in Line Game!"
           />
           <link rel="icon" href="/favicon.ico" />
 
