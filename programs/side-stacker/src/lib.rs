@@ -7,7 +7,7 @@ const ROWS: usize = 7;
 const CELLS_PER_ROW: usize = 7;
 
 #[program]
-pub mod side_stacker {
+pub mod four_in_line {
     use super::*;
 
     pub fn create_game(
@@ -199,10 +199,8 @@ fn player_win(board: Vec<Play>, play: usize) -> bool {
 
 fn is_valid_cell(board: Vec<Play>, play: usize) -> bool {
     board[play] == Play::Empty
-        && (play % CELLS_PER_ROW == 0
-            || play % CELLS_PER_ROW == (CELLS_PER_ROW - 1)
-            || (play > 0 && board[play - 1] != Play::Empty
-                || play < board.len() - 1 && board[play + 1] != Play::Empty))
+        && (play / CELLS_PER_ROW == ROWS - 1
+            || board[(play + CELLS_PER_ROW) % board.len()] != Play::Empty)
 }
 
 fn diff(n1: usize, n2: usize) -> usize {
