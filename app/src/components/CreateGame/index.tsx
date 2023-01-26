@@ -12,14 +12,19 @@ export const CreateGame: FC = ({}) => {
   const router = useRouter();
   const { connection } = useConnection();
   const { program } = useProgram({ connection, wallet });
-  const [player2, setPlayer2] = useState("pc");
+  const [mode, setMode] = useState<"PVP" | "PC" | "SOLO">("PVP");
+  const [player2, setPlayer2] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<any>();
   const [created, setCreated] = useState<boolean>(false);
   const handleClick = () => {
     if (program) {
+      if ( mode == "PVP" && !player2){
+        setError("You need to input your friend's wallet")
+      }else{
       (async () => {
-        const player2Key = player2 == "pc" ? player2 : new PublicKey(player2);
+        const player2Key =
+          mode == "PVP" && player2 ? new PublicKey(player2) : player2;
         const [gamePublicKey] = web3.PublicKey.findProgramAddressSync(
           [Buffer.from("game"), Buffer.from(name)],
           program.programId
@@ -28,10 +33,10 @@ export const CreateGame: FC = ({}) => {
           const tx = await program.methods
             .createGame(
               name,
-              player2 == "pc"
-                ? [wallet.publicKey]
-                : [wallet.publicKey, player2Key],
-              player2 == "pc" ? player2 : "COMMON"
+              mode == "PVP"
+                ? [wallet.publicKey, player2Key]
+                : [wallet.publicKey],
+              mode
             )
             .accounts({
               game: gamePublicKey,
@@ -44,6 +49,7 @@ export const CreateGame: FC = ({}) => {
           setError(error);
         }
       })();
+    }
     }
   };
 
@@ -77,15 +83,39 @@ export const CreateGame: FC = ({}) => {
             onChange={(e) => setName(e.target.value)}
             className="p-5 mb-5"
           />
-          <input
-            placeholder="Copy your friends wallet here"
-            value={player2}
-            onChange={(e) => setPlayer2(e.target.value)}
-            className="p-5 mb-5"
-          />
+          <select
+            className="p-5 mb-5 bg-blue-600"
+            value={mode}
+            onChange={(e) => {
+              setMode(
+                (e.target as unknown as HTMLTextAreaElement).value as
+                  | "PVP"
+                  | "PC"
+                  | "SOLO"
+              );
+            }}
+          >
+            <option key={"PVP"} value={"PVP"}>
+              {"Play agaist a friend"}
+            </option>
+            <option key={"PC"} value={"PC"}>
+              {"Play agaist the PC"}
+            </option>
+            <option key={"SOLO"} value={"SOLO"}>
+              {"Play Solo"}
+            </option>
+          </select>
+          {mode == "PVP" && (
+            <input
+              placeholder="Copy your friends wallet here"
+              value={player2}
+              onChange={(e) => setPlayer2(e.target.value)}
+              className="p-5 mb-5"
+            />
+          )}
           <button
             type="button"
-            onClick={player2 && handleClick}
+            onClick={handleClick}
             className="bg-purple-700 text-white font-extrabold p-2 px-4 rounded-lg"
           >
             Create Game!

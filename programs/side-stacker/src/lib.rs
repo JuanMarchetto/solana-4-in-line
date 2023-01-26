@@ -21,8 +21,8 @@ pub mod four_in_line {
         game.name = (*name).to_string();
         game.players = players;
         game.status = "PLAYING".to_string();
-        game.game_type = game_type;
-        emit!(GameCreated { name });
+        game.game_type = (*game_type).to_string();
+        emit!(GameCreated { name, game_type });
         Ok(())
     }
 
@@ -33,7 +33,7 @@ pub mod four_in_line {
         }
         let player = &mut ctx.accounts.payer;
         let turn = (game.turn % 2) as usize;
-        if player.key() != game.players[turn] {
+        if player.key() != game.players[turn as usize % game.players.len()] {
             return Err(error!(ErrorCode::IncorrectUser));
         }
         if !is_valid_cell((*game.board).to_vec(), play as usize) {
@@ -48,8 +48,8 @@ pub mod four_in_line {
             let status = format!(
                 "{:#?} Wins!, {:#?} Loss!",
                 game.players[turn],
-                if game.game_type == "pc" {
-                    "pc".to_string()
+                if game.game_type == "PC" {
+                    "PC".to_string()
                 } else {
                     format!(
                         "{:#?}",
@@ -62,7 +62,7 @@ pub mod four_in_line {
             game.status = "TIE".to_string();
         } else {
             game.turn = game.turn.checked_add(1).unwrap();
-            if game.game_type == "pc" {
+            if game.game_type == "PC" {
                 let possible_pc_cell: Vec<(usize, &Play)> = board
                     .iter()
                     .enumerate()
@@ -152,6 +152,7 @@ pub enum ErrorCode {
 #[event]
 pub struct GameCreated {
     name: String,
+    game_type: String,
 }
 
 #[event]
