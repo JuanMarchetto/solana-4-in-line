@@ -2,11 +2,11 @@
 
 1. Follow [this guide](https://book.anchor-lang.com/getting_started/installation.html) to install all the needed software
 2. Clone this repo:
-    `git clone https://github.com/cooperativamental/mate.git`
+    `git clone https://github.com/JuanMarchetto/solana-4-in-line.git`
 3. Run a local validator
     `solana-test-validator`
 4. Open another terminal, cd into the project's folder and install dependencies
-    `cd mate && yarn`
+    `cd solana-4-in-line && yarn`
 5. Build the program
     `anchor build`
 6. Set correct program id
